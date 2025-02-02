@@ -1,0 +1,75 @@
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
+const swaggerUi = require('swagger-ui-express');
+require('dotenv').config();
+
+const authRoutes = require('./routes/auth.routes');
+const productsRoutes = require('./routes/products.routes');
+const devicesRoutes = require('./routes/devices.routes');
+const errorHandler = require('./middleware/error');
+const apiLimiter = require('./middleware/rateLimiter');
+const swaggerSpec = require('./config/swagger');
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Manejo de errores global
+process.on('uncaughtException', (error) => {
+    console.error('Error no capturado:', error);
+});
+
+// Ruta de prueba
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'API is running',
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// Rate Limiter
+app.use('/api/', apiLimiter);
+
+// Rutas
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/devices', devicesRoutes);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Manejo de errores
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ message: 'Error interno del servidor' });
+});
+
+// Conexión a MongoDB con más logs
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log(' Conectado a MongoDB');
+        console.log(' Base de datos:', mongoose.connection.name);
+        console.log(' Host:', mongoose.connection.host);
+        
+        // se inicia el servidor después de conectar a MongoDB
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, () => {
+            console.log(` Servidor corriendo en puerto ${PORT}`);
+        });
+
+    })
+    .catch(err => {
+        console.error(' Error de conexión a MongoDB:', err.message);
+        process.exit(1);
+    });
+
+// Eventos de conexión MongoDB
+mongoose.connection.on('error', err => {
+  console.error(' Error de MongoDB:', err.message);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn(' Desconectado de MongoDB');
+}); 

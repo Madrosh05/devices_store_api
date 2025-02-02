@@ -1,0 +1,247 @@
+<!--
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Horus API</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #googleLogin {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 12px 20px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        #googleLogin:hover {
+            background-color: #357abd;
+        }
+
+        .token-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .token-display {
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .copy-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: #218838;
+        }
+
+        /* Estilos específicos para el logout */
+        #logoutButton {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto;
+            padding: 12px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        #logoutButton:hover {
+            background-color: #c82333;
+        }
+
+        .user-info {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .user-email {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 10px;
+            color: #6c757d;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Login - Horus API</h2>
+        
+        <!-- //Sección de login// 
+        <div id="loginSection">
+            <button id="googleLogin">Iniciar sesión con Google</button>
+        </div>
+
+         //Sección de usuario///
+        <div id="userSection" class="hidden">
+            <div class="user-info">
+                <div class="user-email" id="userEmail"></div>
+                <button id="logoutButton">Cerrar Sesión</button>
+            </div>
+            <div class="token-container">
+                <div class="token-display" id="token"></div>
+                <button class="copy-button" onclick="copyToken()">Copiar Token</button>
+            </div>
+        </div>
+
+        <div class="status-message" id="status"></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbdfNzJ2pDTftDm9YUQRu-YPMt4HPw7Ls",
+            authDomain: "api-horus-a5e9e.firebaseapp.com",
+            projectId: "api-horus-a5e9e",
+            storageBucket: "api-horus-a5e9e.firebasestorage.app",
+            messagingSenderId: "420370223697",
+            appId: "1:420370223697:web:ee0cc0b6e614f507ad9e70"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        function updateUI(user) {
+            const loginSection = document.getElementById('loginSection');
+            const userSection = document.getElementById('userSection');
+            const userEmail = document.getElementById('userEmail');
+
+            if (user) {
+                loginSection.classList.add('hidden');
+                userSection.classList.remove('hidden');
+                userEmail.textContent = `Usuario: ${user.email}`;
+            } else {
+                loginSection.classList.remove('hidden');
+                userSection.classList.add('hidden');
+                userEmail.textContent = '';
+                document.getElementById('token').textContent = '';
+            }
+        }
+
+        firebase.auth().onAuthStateChanged((user) => {
+            updateUI(user);
+        });
+
+        function copyToken() {
+            try {
+                const tokenElement = document.getElementById('token');
+                const fullToken = tokenElement.getAttribute('data-full-token');
+                
+                if (!fullToken) {
+                    document.getElementById('status').textContent = ' No hay token disponible';
+                    return;
+                }
+
+                navigator.clipboard.writeText(fullToken)
+                    .then(() => {
+                        document.getElementById('status').textContent = ' Token copiado al portapapeles';
+                        setTimeout(() => {
+                            document.getElementById('status').textContent = '';
+                        }, 3000);
+                    })
+                    .catch(err => {
+                        console.error('Error al copiar:', err);
+                        document.getElementById('status').textContent = ' Error al copiar el token';
+                    });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('status').textContent = ' Error al copiar el token';
+            }
+        }
+
+        document.getElementById('googleLogin').addEventListener('click', async () => {
+            try {
+                const result = await firebase.auth().signInWithPopup(provider);
+                const user = result.user;
+                
+                if (!user.email.endsWith('@horusautomation.com')) {
+                    document.getElementById('status').textContent = ' Solo se permiten correos de @horusautomation.com';
+                    await firebase.auth().signOut();
+                    return;
+                }
+                
+                const token = await user.getIdToken();
+                const tokenElement = document.getElementById('token');
+                tokenElement.innerText = token.substring(0, 20) + "...";
+                tokenElement.setAttribute('data-full-token', token);
+                document.getElementById('status').textContent = 'Login exitoso';
+                
+                console.log('Token guardado:', tokenElement.getAttribute('data-full-token'));
+            } catch (error) {
+                console.error('Error en login:', error);
+                document.getElementById('status').textContent = ' Error: ' + error.message;
+            }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            try {
+                await firebase.auth().signOut();
+                document.getElementById('status').textContent = ' Sesión cerrada exitosamente';
+                updateUI(null);
+            } catch (error) {
+                console.error('Error en logout:', error);
+                document.getElementById('status').textContent = ' Error al cerrar sesión';
+            }
+        });
+    </script>
+</body>
+</html>     
+-->
