@@ -3,6 +3,11 @@ const Product = require('../models/product.model');
 const productController = {
   async create(req, res) {
     try {
+      if (req.body.price <= 0) {
+        return res.status(400).json({
+          message: 'El precio debe ser mayor que 0'
+        });
+      }
       const product = new Product({
         ...req.body,
         createdBy: req.user.uid

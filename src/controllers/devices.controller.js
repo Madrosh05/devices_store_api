@@ -3,6 +3,13 @@ const Device = require('../models/device.model');
 const deviceController = {
   async register(req, res) {
     try {
+      // Validar tipo de dispositivo antes de crear
+      if (!['sensor', 'actuator', 'gateway'].includes(req.body.type)) {
+        return res.status(400).json({
+          message: 'Tipo de dispositivo no válido'
+        });
+      }
+
       // Verificar si el dispositivo ya existe
       const existingDevice = await Device.findOne({ 
         serialNumber: req.body.serialNumber 

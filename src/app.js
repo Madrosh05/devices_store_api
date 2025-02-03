@@ -13,8 +13,25 @@ const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Error:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           description: Mensaje de error
+ */
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Manejo de errores global
@@ -22,7 +39,27 @@ process.on('uncaughtException', (error) => {
     console.error('Error no capturado:', error);
 });
 
-// Ruta de prueba
+/**
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Verifica el estado de la API y la conexión a MongoDB
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Estado actual del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: API is running
+ *                 mongoStatus:
+ *                   type: string
+ *                   example: connected
+ */
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'API is running',
@@ -33,12 +70,31 @@ app.get('/api/health', (req, res) => {
 // Rate Limiter
 app.use('/api/', apiLimiter);
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Endpoints de autenticación
+ *   - name: Products
+ *     description: Gestión de productos
+ *   - name: Devices
+ *     description: Gestión de dispositivos
+ *   - name: Health
+ *     description: Estado del servidor
+ */
+
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/devices', devicesRoutes);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  swaggerOptions: {
+    persistAuthorization: true
+  }
+}));
 
 // Manejo de errores
 app.use((err, req, res, next) => {
@@ -70,6 +126,12 @@ mongoose.connection.on('error', err => {
   console.error(' Error de MongoDB:', err.message);
 });
 
-mongoose.connection.on('disconnected', () => {
-  console.warn(' Desconectado de MongoDB');
+mongoose.connection.on('disconnected', async () => {
+  console.warn(' Desconectado de MongoDB. Intentando reconectar...');
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log(' Reconexión exitosa a MongoDB');
+  } catch (error) {
+    console.error(' Error en la reconexión:', error);
+  }
 }); 

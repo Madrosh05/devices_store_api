@@ -10,7 +10,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3000'
+        url: process.env.API_URL || 'http://localhost:3001'
       }
     ],
     components: {
@@ -19,6 +19,65 @@ const swaggerOptions = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT'
+        }
+      },
+      schemas: {
+        Error: {
+          type: 'object',
+          properties: {
+            message: {
+              type: 'string',
+              description: 'Mensaje de error'
+            },
+            errors: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  msg: {
+                    type: 'string'
+                  },
+                  param: {
+                    type: 'string'
+                  }
+                }
+              },
+              description: 'Lista de errores detallados (opcional)'
+            }
+          }
+        },
+        Product: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string'
+            },
+            price: {
+              type: 'number'
+            }
+          }
+        },
+        Device: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string'
+            },
+            type: {
+              type: 'string'
+            }
+          }
+        },
+        User: {
+          type: 'object',
+          properties: {
+            email: {
+              type: 'string'
+            },
+            password: {
+              type: 'string'
+            }
+          }
         }
       }
     }
