@@ -102,23 +102,21 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Error interno del servidor' });
 });
 
-// Conexión a MongoDB con más logs
+// Modificar la conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log(' Conectado a MongoDB');
-        console.log(' Base de datos:', mongoose.connection.name);
-        console.log(' Host:', mongoose.connection.host);
         
-        // se inicia el servidor después de conectar a MongoDB
-        const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
-            console.log(` Servidor corriendo en puerto ${PORT}`);
-        });
-
+        // Solo iniciar el servidor si no estamos en Vercel
+        if (process.env.NODE_ENV !== 'production') {
+            const PORT = process.env.PORT || 3001;
+            app.listen(PORT, () => {
+                console.log(` Servidor corriendo en puerto ${PORT}`);
+            });
+        }
     })
     .catch(err => {
         console.error(' Error de conexión a MongoDB:', err.message);
-        process.exit(1);
     });
 
 // Eventos de conexión MongoDB
@@ -134,4 +132,7 @@ mongoose.connection.on('disconnected', async () => {
   } catch (error) {
     console.error(' Error en la reconexión:', error);
   }
-}); 
+});
+
+// Exportar la app para Vercel
+module.exports = app; 
