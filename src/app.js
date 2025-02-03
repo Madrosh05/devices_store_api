@@ -60,10 +60,15 @@ process.on('uncaughtException', (error) => {
  *                   type: string
  *                   example: connected
  */
+app.get('/', (req, res) => {
+  res.redirect('/api-docs');
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'API is running',
-    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV
   });
 });
 
@@ -100,6 +105,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.use((err, req, res, next) => {
     console.error('Error:', err);
     res.status(500).json({ message: 'Error interno del servidor' });
+});
+
+// Manejo de rutas no encontradas
+app.use('*', (req, res) => {
+  res.status(404).json({
+    message: 'Ruta no encontrada',
+    documentation: `${req.protocol}://${req.get('host')}/api-docs`
+  });
 });
 
 // Modificar la conexión a MongoDB
