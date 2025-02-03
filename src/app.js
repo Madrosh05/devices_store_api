@@ -97,8 +97,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   explorer: true,
   customCss: '.swagger-ui .topbar { display: none }',
   swaggerOptions: {
-    persistAuthorization: true
-  }
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    filter: true,
+    syntaxHighlight: {
+      activate: true,
+      theme: "agate"
+    }
+  },
+  customSiteTitle: "Horus Automation API Documentation"
 }));
 
 // Manejo de errores

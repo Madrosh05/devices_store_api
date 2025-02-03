@@ -10,7 +10,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3001'
+        url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001',
+        description: process.env.VERCEL_URL ? 'Servidor de Producción' : 'Servidor de Desarrollo'
       }
     ],
     components: {
@@ -82,7 +83,9 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ['./src/routes/*.js']
+  apis: ['./src/routes/*.js'],
+  failOnErrors: true,
+  validateResponses: true
 };
 
 module.exports = swaggerJsDoc(swaggerOptions);
