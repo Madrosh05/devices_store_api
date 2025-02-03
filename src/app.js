@@ -79,6 +79,9 @@ app.use('/api/', apiLimiter);
  *     description: Estado del servidor
  */
 
+// Servir archivos estáticos de swagger-ui
+app.use('/api-docs', express.static(path.join(__dirname, 'node_modules/swagger-ui-dist')));
+
 // Configuración de Swagger UI
 const swaggerOptions = {
   customCss: '.swagger-ui .topbar { display: none }',
@@ -90,14 +93,21 @@ const swaggerOptions = {
   explorer: true
 };
 
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    ...swaggerOptions,
+    customCssUrl: '/api-docs/swagger-ui.css',
+    customJs: '/api-docs/swagger-ui-bundle.js',
+    customfavIcon: '/api-docs/favicon-32x32.png'
+  })
+);
+
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/devices', devicesRoutes);
-
-// Servir Swagger UI
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec, swaggerOptions));
 
 // Endpoint para obtener la especificación de Swagger
 app.get('/swagger.json', (req, res) => {
@@ -164,5 +174,4 @@ mongoose.connection.on('disconnected', async () => {
   }
 });
 
-// Exportar la app para Vercel
 module.exports = app; 
