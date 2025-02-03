@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth.routes');
@@ -33,6 +34,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Manejo de errores global
 process.on('uncaughtException', (error) => {
@@ -60,17 +62,6 @@ process.on('uncaughtException', (error) => {
  *                   type: string
  *                   example: connected
  */
-app.get('/', (req, res) => {
-  res.redirect('/api-docs');
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'API is running',
-    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    environment: process.env.NODE_ENV
-  });
-});
 
 // Rate Limiter
 app.use('/api/', apiLimiter);
@@ -88,25 +79,44 @@ app.use('/api/', apiLimiter);
  *     description: Estado del servidor
  */
 
+// Configuración de Swagger UI
+const swaggerOptions = {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Horus Automation API Documentation",
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+  },
+  explorer: true
+};
+
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/devices', devicesRoutes);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  swaggerOptions: {
-    persistAuthorization: true,
-    displayRequestDuration: true,
-    filter: true,
-    syntaxHighlight: {
-      activate: true,
-      theme: "agate"
-    }
-  },
-  customSiteTitle: "Horus Automation API Documentation"
-}));
+// Servir Swagger UI
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+// Endpoint para obtener la especificación de Swagger
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.redirect('/api-docs');
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'API is running',
+    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV
+  });
+});
 
 // Manejo de errores
 app.use((err, req, res, next) => {

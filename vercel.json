@@ -8,6 +8,17 @@
   ],
   "routes": [
     {
+      "src": "/swagger.json",
+      "dest": "src/app.js"
+    },
+    {
+      "src": "/api-docs/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate"
+      },
+      "dest": "src/app.js"
+    },
+    {
       "src": "/(.*)",
       "dest": "src/app.js"
     }
