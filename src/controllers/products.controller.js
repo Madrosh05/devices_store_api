@@ -1,24 +1,7 @@
 const Product = require('../models/product.model');
+const { HTTP_STATUS, ERROR_MESSAGES } = require('../config/constants');
 
 const productController = {
-  async create(req, res) {
-    try {
-      if (req.body.price <= 0) {
-        return res.status(400).json({
-          message: 'El precio debe ser mayor que 0'
-        });
-      }
-      const product = new Product({
-        ...req.body,
-        createdBy: req.user.uid
-      });
-      await product.save();
-      res.status(201).json(product);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  },
-
   async getAll(req, res) {
     try {
       const { page = 1, limit = 10, category, search } = req.query;
@@ -45,10 +28,30 @@ const productController = {
       res.json({
         products,
         totalPages: Math.ceil(count / limit),
-        currentPage: page
+        currentPage: parseInt(page),
+        totalProducts: count
       });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Error getting products:', error);
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        message: error.message 
+      });
+    }
+  },
+
+  async create(req, res) {
+    try {
+      const product = new Product({
+        ...req.body,
+        createdBy: req.user.uid
+      });
+      await product.save();
+      res.status(HTTP_STATUS.CREATED).json(product);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        message: error.message 
+      });
     }
   },
 
@@ -56,11 +59,16 @@ const productController = {
     try {
       const product = await Product.findById(req.params.id);
       if (!product) {
-        return res.status(404).json({ message: 'Producto no encontrado' });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ 
+          message: ERROR_MESSAGES.PRODUCT_NOT_FOUND 
+        });
       }
       res.json(product);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Error getting product:', error);
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        message: error.message 
+      });
     }
   },
 
@@ -72,11 +80,16 @@ const productController = {
         { new: true }
       );
       if (!product) {
-        return res.status(404).json({ message: 'Producto no encontrado' });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ 
+          message: ERROR_MESSAGES.PRODUCT_NOT_FOUND 
+        });
       }
       res.json(product);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      console.error('Error updating product:', error);
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        message: error.message 
+      });
     }
   },
 
@@ -84,13 +97,18 @@ const productController = {
     try {
       const product = await Product.findByIdAndDelete(req.params.id);
       if (!product) {
-        return res.status(404).json({ message: 'Producto no encontrado' });
+        return res.status(HTTP_STATUS.NOT_FOUND).json({ 
+          message: ERROR_MESSAGES.PRODUCT_NOT_FOUND 
+        });
       }
       res.json({ message: 'Producto eliminado exitosamente' });
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Error deleting product:', error);
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+        message: error.message 
+      });
     }
   }
 };
 
-module.exports = productController; 
+module.exports = productController;
