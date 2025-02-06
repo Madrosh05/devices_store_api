@@ -1,4 +1,3 @@
-
 module.exports = {
 
     HTTP_STATUS: {
@@ -23,5 +22,11 @@ module.exports = {
     },
 
     // Dominios permitidos
-    ALLOWED_DOMAINS: ['@horusautomation.com']
+    ALLOWED_DOMAINS: ['@horusautomation.com'],
+
+    UPLOAD: {
+        MAX_FILE_SIZE: 10485760, // 10MB en bytes
+        ALLOWED_FORMATS: ['image/jpeg', 'image/png', 'image/gif'],
+        CLOUDINARY_FOLDER: 'products'
+    }
 }; 
