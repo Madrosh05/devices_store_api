@@ -10,12 +10,14 @@ router.use(authMiddleware);
 
 // Agrega logging para debugging
 router.post('/', async (req, res, next) => {
-  console.log('Headers recibidos:', req.headers);
-  console.log('Token recibido:', req.headers.authorization);
+  console.log('Headers completos:', req.headers);
+  console.log('Método de la petición:', req.method);
+  console.log('URL de la petición:', req.originalUrl);
+  
   try {
     await uploadImage(req, res);
   } catch (error) {
-    console.error('Error en upload:', error);
+    console.error('Error detallado en upload:', error);
     next(error);
   }
 });
