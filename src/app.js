@@ -18,7 +18,8 @@ const app = express();
 
 //Configuración de CORS para permitir solicitudes desde Vercel en producción
 const allowedOrigins = [
-  'https://demo-aplic.vercel.app',
+  'https://demo-aplic.vercel.app',    // Frontend en producción
+  'https://devices-store-api.vercel.app', // Backend en producción
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:3000',
@@ -27,16 +28,17 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
+    // En desarrollo, permitir sin origen (para herramientas de desarrollo)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('Origen bloqueado por CORS:', origin); // Para debugging
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
