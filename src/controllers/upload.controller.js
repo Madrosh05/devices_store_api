@@ -6,39 +6,41 @@ exports.uploadImage = async (req, res) => {
     const { imageBase64 } = req.body;
 
     if (!imageBase64) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+      console.log('No se recibió imagen');
+      return res.status(400).json({ 
         message: 'No se proporcionó una imagen' 
       });
     }
 
+    console.log('Procesando imagen...');
+    
     // Validar el formato de la imagen
     if (!imageBase64.match(/^data:image\/(jpeg|png|jpg|gif);base64,/)) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+      console.log('Formato inválido');
+      return res.status(400).json({
         message: 'Formato de imagen no válido. Se aceptan: JPEG, PNG, JPG, GIF'
       });
     }
 
     const result = await cloudinary.uploader.upload(imageBase64, {
-      folder: 'products', // Organizar por carpetas
+      folder: 'products',
       resource_type: 'image',
       transformation: [
-        { width: 1000, crop: "limit" }, // Limitar tamaño máximo
-        { quality: "auto" } // Optimización automática
+        { width: 1000, crop: "limit" },
+        { quality: "auto" }
       ]
     });
 
-    res.status(HTTP_STATUS.OK).json({
+    console.log('Imagen subida exitosamente:', result.secure_url);
+
+    res.status(200).json({
       success: true,
       imageUrl: result.secure_url,
-      public_id: result.public_id,
-      width: result.width,
-      height: result.height,
-      format: result.format,
-      size: result.bytes
+      public_id: result.public_id
     });
   } catch (error) {
     console.error('Error al subir imagen:', error);
-    res.status(HTTP_STATUS.BAD_REQUEST).json({ 
+    res.status(500).json({ 
       message: 'Error al procesar la imagen',
       error: error.message 
     });
