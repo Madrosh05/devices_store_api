@@ -1,5 +1,9 @@
 const swaggerJsDoc = require('swagger-jsdoc');
 
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://devices-store-api.vercel.app/api'
+  : 'http://localhost:3001/api';
+
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -10,7 +14,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001',
+        url: API_URL,
         description: process.env.VERCEL_URL ? 'Servidor de Producción' : 'Servidor de Desarrollo'
       }
     ],
