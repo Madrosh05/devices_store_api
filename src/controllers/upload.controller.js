@@ -45,7 +45,6 @@ exports.uploadImage = async (req, res) => {
   }
 };
 
-// Agregar método para eliminar imágenes
 exports.deleteImage = async (req, res) => {
   try {
     const { public_id } = req.params;
